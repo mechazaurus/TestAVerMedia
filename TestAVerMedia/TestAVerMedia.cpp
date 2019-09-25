@@ -33,7 +33,7 @@ void testGetDeviceName()
 	DWORD dwDeviceNumber = 0;
 	AVerGetDeviceNum(&dwDeviceNumber);
 
-	for (int iDeviceIndex = 0; iDeviceIndex < dwDeviceNumber; iDeviceIndex++)
+	for (unsigned int iDeviceIndex = 0; iDeviceIndex < dwDeviceNumber; iDeviceIndex++)
 	{
 		// Device's name
 		WCHAR wszName[260] = { L'\0' };
@@ -62,7 +62,7 @@ void testGetDeviceSerialNum()
 	DWORD dwDeviceNumber = 0;
 	AVerGetDeviceNum(&dwDeviceNumber);
 
-	for (int iDeviceIndex = 0; iDeviceIndex < dwDeviceNumber; iDeviceIndex++)
+	for (unsigned int iDeviceIndex = 0; iDeviceIndex < dwDeviceNumber; iDeviceIndex++)
 	{
 		// Device's serial number
 		BYTE pbySerialNum[12] = { 0 };
@@ -87,13 +87,82 @@ void testGetDeviceSerialNum()
 	AVerUninitialize();
 }
 
+void testCaputreObject()
+{
+	// Always init before using API
+	AVerInitialize();
+
+	// Card index
+	DWORD dwDeviceIndex = 4;
+
+	// Handle to the capture object
+	HANDLE* phCaptureObject = new HANDLE();
+
+	// Get the capture object and give it to the handle
+	LONG lCode = AVerCreateCaptureObject(dwDeviceIndex, NULL, phCaptureObject);
+
+	// Use the returned code from the method
+	if (lCode == CAP_EC_DEVICE_IN_USE)
+		std::cout << "Capture card already in use." << std::endl;
+	else if (lCode == CAP_EC_SUCCESS)
+	{
+		// Video infos
+		INPUT_VIDEO_INFO inputVideoInfo = { 0 };
+		inputVideoInfo.dwVersion = 2;
+
+		// Calling methods
+		AVerGetVideoInfo(*phCaptureObject, &inputVideoInfo);
+
+		// Printing infos
+		std::cout << "===== Video infos =====" << std::endl;
+		std::cout << "Version : " << inputVideoInfo.dwVersion << std::endl;
+		std::cout << "Width : " << inputVideoInfo.dwWidth << std::endl;
+		std::cout << "Height : " << inputVideoInfo.dwHeight << std::endl;
+		std::cout << "Frame rate : " << inputVideoInfo.dwFramerate << std::endl;
+		std::cout << "=======================" << std::endl;
+	}
+	
+	// Always uninit to free stuff
+	AVerDeleteCaptureObject(phCaptureObject);
+	AVerUninitialize();
+}
+
+
+/* CHECK SAMPLE : AVerCapSDKDemo_VC_Main
+   PropRecordCommon.cpp
+ */
+void testRecordFile()
+{
+	// Always init before using API
+	AVerInitialize();
+
+	// Card index
+	DWORD dwDeviceIndex = 4;
+
+	// Handle to the capture object
+	HANDLE* phCaptureObject = new HANDLE();
+
+	// Get the capture object and give it to the handle
+	LONG lCode = AVerCreateCaptureObject(dwDeviceIndex, NULL, phCaptureObject);
+
+	if (lCode == CAP_EC_DEVICE_IN_USE)
+		std::cout << "Device already in use..." << std::endl;
+
+
+	// Always uninit to free stuff
+	AVerDeleteCaptureObject(phCaptureObject);
+	AVerUninitialize();
+}
+
 int main(int argc, char** argv)
 {
-	testGetDeviceNum();
+	/*testGetDeviceNum();
 	std::cout << std::endl;
 	testGetDeviceName();
 	std::cout << std::endl;
-	testGetDeviceSerialNum();
+	testGetDeviceSerialNum();*/
+
+	testCaputreObject();
 
 	return 0;
 }
